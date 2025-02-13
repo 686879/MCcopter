@@ -283,6 +283,7 @@ void AP_Vehicle::loop()
         char banner_msg[50];
         if (hal.rcout->get_output_mode_banner(banner_msg, sizeof(banner_msg))) {
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "%s", banner_msg);
+            //686879 heart?
         }
     }
     const uint32_t new_internal_errors = AP::internalerror().errors();

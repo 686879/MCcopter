@@ -83,7 +83,7 @@ AP_Compass_Backend *AP_Compass_IST8310::probe(AP_HAL::OwnPtr<AP_HAL::I2CDevice> 
     if (!dev) {
         return nullptr;
     }
-
+    //here
     AP_Compass_IST8310 *sensor = new AP_Compass_IST8310(std::move(dev), force_external, rotation);
     if (!sensor || !sensor->init()) {
         delete sensor;
@@ -112,6 +112,7 @@ bool AP_Compass_IST8310::init()
     _dev->set_retries(10);
 
     uint8_t whoami;
+    //686879 here
     if (!_dev->read_registers(WAI_REG, &whoami, 1) ||
         whoami != DEVICE_ID) {
         // not an IST8310

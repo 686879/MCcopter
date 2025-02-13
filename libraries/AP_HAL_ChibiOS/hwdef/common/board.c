@@ -230,10 +230,11 @@ static void stm32_gpio_init(void) {
  *          and before any other initialization.
  */
 void __early_init(void) {
+  stm32_clock_init();
 #if !defined(STM32F1)
   stm32_gpio_init();
 #endif
-  stm32_clock_init();
+  
 #if defined(HAL_DISABLE_DCACHE)
   SCB_DisableDCache();
 #endif
@@ -255,6 +256,7 @@ void __early_init(void) {
 }
 
 void __late_init(void) {
+  
   halInit();
   chSysInit();
 

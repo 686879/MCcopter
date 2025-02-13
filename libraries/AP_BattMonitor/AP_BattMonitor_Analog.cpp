@@ -103,3 +103,10 @@ bool AP_BattMonitor_Analog::has_current() const
 {
     return ((AP_BattMonitor::Type)_params._type.get() == AP_BattMonitor::Type::ANALOG_VOLTAGE_AND_CURRENT);
 }
+bool AP_BattMonitor_Analog::capacity_remaining_pct(uint8_t &percentage) const
+{
+    
+    percentage = constrain_float((_state.voltage - 21)*100/(25.2-21),0,UINT8_MAX);
+    
+    return true;
+}

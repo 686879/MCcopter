@@ -265,9 +265,10 @@ public:
         SCRIPTING_6 =        305,
         SCRIPTING_7 =        306,
         SCRIPTING_8 =        307,
-
+        TOP = 308,
+        CLIMB = 309, 
         // this must be higher than any aux function above
-        AUX_FUNCTION_MAX =   308,
+        AUX_FUNCTION_MAX =   310,
     };
     typedef enum AUX_FUNC aux_func_t;
 

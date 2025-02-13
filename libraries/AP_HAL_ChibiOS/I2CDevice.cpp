@@ -293,7 +293,7 @@ void I2CBus::dma_allocate(Shared_DMA *ctx)
 void I2CBus::dma_deallocate(Shared_DMA *)
 {
 }
-
+//686879 we need here
 bool I2CDevice::transfer(const uint8_t *send, uint32_t send_len,
                          uint8_t *recv, uint32_t recv_len)
 {
@@ -341,7 +341,7 @@ bool I2CDevice::transfer(const uint8_t *send, uint32_t send_len,
 
     return true;
 }
-
+//686879 here hhhhh
 bool I2CDevice::_transfer(const uint8_t *send, uint32_t send_len,
                          uint8_t *recv, uint32_t recv_len)
 {

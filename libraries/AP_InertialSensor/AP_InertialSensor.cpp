@@ -1051,12 +1051,12 @@ AP_InertialSensor::detect_backends(void)
 
     case AP_BoardConfig::PX4_BOARD_PIXHAWK:
         ADD_BACKEND(AP_InertialSensor_Invensense::probe(*this, hal.spi->get_device(HAL_INS_MPU60x0_NAME), ROTATION_ROLL_180));
-        ADD_BACKEND(AP_InertialSensor_LSM9DS0::probe(*this,
-                                                      hal.spi->get_device(HAL_INS_LSM9DS0_G_NAME),
-                                                      hal.spi->get_device(HAL_INS_LSM9DS0_A_NAME),
-                                                      ROTATION_ROLL_180,
-                                                      ROTATION_ROLL_180_YAW_270,
-                                                      ROTATION_PITCH_180));
+        // ADD_BACKEND(AP_InertialSensor_LSM9DS0::probe(*this,
+        //                                               hal.spi->get_device(HAL_INS_LSM9DS0_G_NAME),
+        //                                               hal.spi->get_device(HAL_INS_LSM9DS0_A_NAME),
+        //                                               ROTATION_ROLL_180,
+        //                                               ROTATION_ROLL_180_YAW_270,
+        //                                               ROTATION_PITCH_180));
         break;
 
     case AP_BoardConfig::PX4_BOARD_PIXHAWK2:

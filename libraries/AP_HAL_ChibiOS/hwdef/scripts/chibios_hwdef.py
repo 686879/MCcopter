@@ -1320,7 +1320,7 @@ def write_USB_config(f):
     (USB_VID, USB_PID) = get_USB_IDs()
     f.write('#define HAL_USB_VENDOR_ID 0x%04x\n' % int(USB_VID))
     f.write('#define HAL_USB_PRODUCT_ID 0x%04x\n' % int(USB_PID))
-    f.write('#define HAL_USB_STRING_MANUFACTURER %s\n' % get_config("USB_STRING_MANUFACTURER", default="\"ArduPilot\""))
+    f.write('#define HAL_USB_STRING_MANUFACTURER %s\n' % get_config("USB_STRING_MANUFACTURER", default="\"Mengchuang\""))
     default_product = "%BOARD%"
     if args.bootloader:
         default_product += "-BL"

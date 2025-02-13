@@ -14,7 +14,8 @@
    than 1 then redundant sensors may be available
  */
 #ifndef INS_MAX_INSTANCES
-#define INS_MAX_INSTANCES 3
+//686879
+#define INS_MAX_INSTANCES 4
 #endif
 #define INS_MAX_BACKENDS  2*INS_MAX_INSTANCES
 #define INS_MAX_NOTCHES 12

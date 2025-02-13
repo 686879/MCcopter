@@ -186,7 +186,7 @@ bool AP_Follow::get_target_location_and_velocity(Location &loc, Vector3f &vel_ne
 // get distance vector to target (in meters) and target's velocity all in NED frame
 bool AP_Follow::get_target_dist_and_vel_ned(Vector3f &dist_ned, Vector3f &dist_with_offs, Vector3f &vel_ned)
 {
-    // get our location
+    // get our location(LLA)
     Location current_loc;
     if (!AP::ahrs().get_location(current_loc)) {
         clear_dist_and_bearing_to_target();

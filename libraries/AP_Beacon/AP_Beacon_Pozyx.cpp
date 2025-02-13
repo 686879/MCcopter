@@ -31,14 +31,16 @@ bool AP_Beacon_Pozyx::healthy()
 void AP_Beacon_Pozyx::update(void)
 {
     if (uart == nullptr) {
+        hal.console->printf("no uart detected\n");
         return;
     }
 
     // read any available characters
+    hal.console->printf("start");
     int16_t nbytes = uart->available();
     while (nbytes-- > 0) {
+        hal.console->printf("nbytes:%d",nbytes);
         char c = uart->read();
-
         switch (parse_state) {
 
             default:
@@ -99,9 +101,10 @@ void AP_Beacon_Pozyx::parse_buffer()
         checksum ^= linebuf[i];
     }
     // return if failed checksum check
-    if (checksum != 0) {
-        return;
-    }
+    // if (checksum != 0) {
+    //     hal.console->printf("crc");
+    //     return;
+    // }
 
     bool parsed = false;
     switch (parse_msg_id) {
@@ -126,7 +129,9 @@ void AP_Beacon_Pozyx::parse_buffer()
                 uint8_t beacon_id = linebuf[0];
                 uint32_t beacon_distance = (uint32_t)linebuf[4] << 24 | (uint32_t)linebuf[3] << 16 | (uint32_t)linebuf[2] << 8 | (uint32_t)linebuf[1];
                 float beacon_dist = beacon_distance/1000.0f;
+                hal.console->printf("complete parse buffer\n");
                 if (beacon_dist <= AP_BEACON_DISTANCE_MAX) {
+                    hal.console->printf("distance true!\n");
                     set_beacon_distance(beacon_id, beacon_dist);
                     parsed = true;
                 }
@@ -140,7 +145,9 @@ void AP_Beacon_Pozyx::parse_buffer()
                 int32_t vehicle_z = (uint32_t)linebuf[11] << 24 | (uint32_t)linebuf[10] << 16 | (uint32_t)linebuf[9] << 8 | (uint32_t)linebuf[8];
                 int16_t position_error = (uint32_t)linebuf[13] << 8 | (uint32_t)linebuf[12];
                 Vector3f veh_pos(Vector3f(vehicle_x * 0.001f, vehicle_y * 0.001f, -vehicle_z * 0.001f));
+                hal.console->printf("start distance");
                 if (veh_pos.length() <= AP_BEACON_DISTANCE_MAX) {
+                    hal.console->printf("over distance");
                     set_vehicle_position(veh_pos, position_error);
                     parsed = true;
                 }

@@ -87,6 +87,7 @@ AP_InertialSensor_ADIS1647x::probe(AP_InertialSensor &imu,
                                    uint8_t drdy_gpio)
 {
     if (!dev) {
+        hal.console->printf("no spi device\n");
         return nullptr;
     }
     auto sensor = new AP_InertialSensor_ADIS1647x(imu, std::move(dev), rotation, drdy_gpio);
@@ -96,6 +97,7 @@ AP_InertialSensor_ADIS1647x::probe(AP_InertialSensor &imu,
     }
 
     if (!sensor->init()) {
+        
         delete sensor;
         return nullptr;
     }
@@ -105,8 +107,10 @@ AP_InertialSensor_ADIS1647x::probe(AP_InertialSensor &imu,
 
 void AP_InertialSensor_ADIS1647x::start()
 {
+    hal.console->printf("adis start");
     if (!_imu.register_accel(accel_instance, expected_sample_rate_hz, dev->get_bus_id_devtype(DEVTYPE_INS_ADIS1647X)) ||
         !_imu.register_gyro(gyro_instance, expected_sample_rate_hz,   dev->get_bus_id_devtype(DEVTYPE_INS_ADIS1647X))) {
+            hal.console->printf("adis gg");
         return;
     }
 
@@ -122,8 +126,10 @@ void AP_InertialSensor_ADIS1647x::start()
     if (!hal.scheduler->thread_create(FUNCTOR_BIND_MEMBER(&AP_InertialSensor_ADIS1647x::loop, void),
                                       "ADIS1647x",
                                       1024, AP_HAL::Scheduler::PRIORITY_BOOST, 1)) {
+                                        hal.console->printf("adis fail");
         AP_HAL::panic("Failed to create ADIS1647x thread");
     }
+    hal.console->printf("adis over");
 }
 
 /*
@@ -167,7 +173,8 @@ bool AP_InertialSensor_ADIS1647x::check_product_id(uint16_t &prod_id)
     }
         
     case PROD_ID_16507: {
-        opmode = OpMode::Delta32;
+        hal.console->printf("detect 16507");
+        opmode = OpMode::AG32;
         expected_sample_rate_hz = 1200;
         accel_scale = 392.0 / 2097152000.0;
         dvel_scale = 400.0 / 0x7FFFFFFF;
@@ -215,6 +222,7 @@ bool AP_InertialSensor_ADIS1647x::init()
         hal.scheduler->delay(100);
     } while (!check_product_id(prod_id) && --tries);
     if (tries == 0) {
+        hal.console->printf("out time");
         return false;
     }
 
@@ -233,6 +241,7 @@ bool AP_InertialSensor_ADIS1647x::init()
         }
     } else if (expected_sample_rate_hz < 1500) {
         if (!write_reg16(REG_DEC_RATE, REG_DEC_RATE_1000Hz, true)) {
+            hal.console->printf("cant write in ");
             return false;
         }
     }

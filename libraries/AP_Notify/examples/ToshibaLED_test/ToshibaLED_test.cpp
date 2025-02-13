@@ -11,7 +11,7 @@ const AP_HAL::HAL& hal = AP_HAL::get_HAL();
 
 AP_Notify notify;
 
-static ToshibaLED_I2C toshiba_led(1);
+static ToshibaLED_I2C toshiba_led(0);
 
 void setup(void)
 {
@@ -25,7 +25,7 @@ void setup(void)
     toshiba_led.pNotify = &notify;
 
     // turn on initialising notification
-    AP_Notify::flags.initialising = false;
+    AP_Notify::flags.initialising = true;
     AP_Notify::flags.save_trim = true;
     AP_Notify::flags.gps_status = 1;
     AP_Notify::flags.armed = 1;
@@ -35,21 +35,29 @@ void setup(void)
 void loop(void)
 {
     // blink test
-    //hal.console->printf("Blink test\n");
-    //blink();
-    /*
+    hal.console->printf("Blink test\n");
+  
+   
     // full spectrum test
-    hal.console->printf("Spectrum test\n");
-    full_spectrum();
-    */
+    // hal.console->printf("Spectrum test\n");
+    // full_spectrum();
+    
 
     // update the toshiba led
-    toshiba_led.update();
+   toshiba_led.set_rgb(64,0,0);
 
     // wait 1/50th of a second
-    hal.scheduler->delay(20);
-}
+    hal.scheduler->delay(200);
+    
+    toshiba_led.set_rgb(0,64,0);
 
+    // wait 1/50th of a second
+    hal.scheduler->delay(200);
+    toshiba_led.set_rgb(0,0,64);
+
+    // wait 1/50th of a second
+    hal.scheduler->delay(200);
+}
 // full_spectrum - runs through the full spectrum of colours the led can display
 void full_spectrum()
 {
@@ -81,6 +89,7 @@ void blink()
         }else{
             toshiba_led.set_rgb(0, 0, LED_DIM);   // blue
         }
+        
     }
 }
 

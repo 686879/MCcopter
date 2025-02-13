@@ -172,6 +172,7 @@ void Storage::init()
 
     _fd = fd;
     _initialised = true;
+    hal.console->printf("addr:%s",dpath);
 }
 
 /*

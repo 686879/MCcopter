@@ -475,7 +475,8 @@ void AP_MotorsMatrix::_output_test_seq(uint8_t motor_seq, int16_t pwm)
 //  (should only be performed during testing)
 //  If a motor output channel is remapped, the mapped channel is used.
 //  Returns true if motor output is set, false otherwise
-//  pwm value is an actual pwm value that will be output, normally in the range of 1000 ~ 2000
+//  pwm value is an actual pwm value that will be output, normally in the range of 1000 ~ 
+//686879
 bool AP_MotorsMatrix::output_test_num(uint8_t output_channel, int16_t pwm)
 {
     if (!armed()) {

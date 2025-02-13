@@ -174,6 +174,34 @@ Mode *Copter::mode_from_mode_num(const Mode::Number mode)
             ret = &mode_turtle;
             break;
 #endif
+//686879
+#if MODE_CLIMB_ENABLED == ENABLED
+        case Mode::Number::CLIMB:
+            ret = &mode_climb;
+            break;
+#endif
+#if MODE_FIRE_ENABLED == ENABLED
+        case Mode::Number::FIRE:
+            ret = &mode_fire;
+            break;
+#endif
+#if MODE_RECOVERY_ENABLED == ENABLED
+        case Mode::Number::RECOVERY:
+            ret = &mode_recovery;
+            break;
+#endif
+
+#if MODE_CAR_ENABLED == ENABLED
+        case Mode::Number::CAR:
+            ret = &mode_car;
+            break;
+#endif
+
+#if MODE_TOP_ENABLED == ENABLED
+        case Mode::Number::TOP:
+            ret = &mode_top;
+            break;
+#endif
 
         default:
             break;
@@ -203,6 +231,13 @@ bool Copter::set_mode(Mode::Number mode, ModeReason reason)
     // update last reason
     const ModeReason last_reason = _last_reason;
     _last_reason = reason;
+    if (flightmode->mode_number() == Mode::Number::CLIMB){
+        if (mode !=  Mode::Number::TOP)
+        {
+            desired_mode = mode;
+            mode = Mode::Number::RECOVERY;
+        }
+    }
 
     // return immediately if we are already in the desired mode
     if (mode == flightmode->mode_number()) {
@@ -925,37 +960,39 @@ void Mode::output_to_motors()
 Mode::AltHoldModeState Mode::get_alt_hold_state(float target_climb_rate_cms)
 {
     // Alt Hold State Machine Determination
-    if (!motors->armed()) {
+    if (!motors->armed()) {//飞行器上锁
         // the aircraft should moved to a shut down state
+        //设置电机状态为禁用
         motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::SHUT_DOWN);
 
         // transition through states as aircraft spools down
+        //根据当前电机状态决定定高状态机状态
         switch (motors->get_spool_state()) {
 
-        case AP_Motors::SpoolState::SHUT_DOWN:
+        case AP_Motors::SpoolState::SHUT_DOWN://电机为禁止，飞行器尚未起飞，状态机状态为停止
             return AltHold_MotorStopped;
 
-        case AP_Motors::SpoolState::GROUND_IDLE:
+        case AP_Motors::SpoolState::GROUND_IDLE://电机为地面怠速，状态机状态为地面怠速
             return AltHold_Landed_Ground_Idle;
 
         default:
-            return AltHold_Landed_Pre_Takeoff;
+            return AltHold_Landed_Pre_Takeoff;//电机解除限制，准备起飞
         }
 
-    } else if (takeoff.running() || takeoff.triggered(target_climb_rate_cms)) {
+    } else if (takeoff.running() || takeoff.triggered(target_climb_rate_cms)) {//飞行器正在起飞或触发起飞
         // the aircraft is currently landed or taking off, asking for a positive climb rate and in THROTTLE_UNLIMITED
         // the aircraft should progress through the take off procedure
-        return AltHold_Takeoff;
+        return AltHold_Takeoff;//设置飞行器状态为起飞
 
-    } else if (!copter.ap.auto_armed || copter.ap.land_complete) {
+    } else if (!copter.ap.auto_armed || copter.ap.land_complete) {//飞行器解锁且未在空中并且未触发起飞
         // the aircraft is armed and landed
-        if (target_climb_rate_cms < 0.0f && !copter.ap.using_interlock) {
+        if (target_climb_rate_cms < 0.0f && !copter.ap.using_interlock) {//目标爬升率过低
             // the aircraft should move to a ground idle state
-            motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::GROUND_IDLE);
+            motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::GROUND_IDLE);//进入地面怠速状态
 
         } else {
             // the aircraft should prepare for imminent take off
-            motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
+            motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);//进入准备起飞状态
         }
 
         if (motors->get_spool_state() == AP_Motors::SpoolState::GROUND_IDLE) {
@@ -968,6 +1005,7 @@ Mode::AltHoldModeState Mode::get_alt_hold_state(float target_climb_rate_cms)
         }
 
     } else {
+        //飞行器进入飞行模式
         // the aircraft is in a flying state
         motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
         return AltHold_Flying;

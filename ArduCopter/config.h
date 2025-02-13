@@ -248,6 +248,37 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
+// climb 686879 - fly vehicle in flip in pitch and roll direction mode
+#ifndef MODE_CLIMB_ENABLED
+# define MODE_CLIMB_ENABLED ENABLED
+#endif
+
+//////////////////////////////////////////////////////////////////////////////
+// fire 686879 - fly vehicle in flip in pitch and roll direction mode
+#ifndef MODE_FIRE_ENABLED
+# define MODE_FIRE_ENABLED ENABLED
+#endif
+
+
+//////////////////////////////////////////////////////////////////////////////
+// RECOVERY 686879 - fly vehicle in flip in pitch and roll direction mode
+#ifndef MODE_RECOVERY_ENABLED
+# define MODE_RECOVERY_ENABLED ENABLED
+#endif
+
+//////////////////////////////////////////////////////////////////////////////
+// CAR 686879 - fly vehicle in flip in pitch and roll direction mode
+#ifndef MODE_CAR_ENABLED
+# define MODE_CAR_ENABLED ENABLED
+#endif
+
+//////////////////////////////////////////////////////////////////////////////
+// TOP 686879 - fly vehicle in flip in pitch and roll direction mode
+#ifndef MODE_TOP_ENABLED
+# define MODE_TOP_ENABLED ENABLED
+#endif
+
+//////////////////////////////////////////////////////////////////////////////
 // Follow - follow another vehicle or GCS
 #ifndef MODE_FOLLOW_ENABLED
 # define MODE_FOLLOW_ENABLED !HAL_MINIMIZE_FEATURES

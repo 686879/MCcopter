@@ -112,9 +112,10 @@ void AC_Loiter::init_target(const Vector2f& position)
 /// initialize's position and feed-forward velocity from current pos and velocity
 void AC_Loiter::init_target()
 {
+    //参数检查（速度、加速度）
     sanity_check_params();
 
-    // initialise position controller speed and acceleration
+    // 初始化位置控制器n
     _pos_control.set_correction_speed_accel_xy(LOITER_VEL_CORRECTION_MAX, _accel_cmss);
     _pos_control.set_pos_error_max_xy_cm(LOITER_POS_CORRECTION_MAX);
 

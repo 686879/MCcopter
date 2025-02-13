@@ -172,7 +172,8 @@ bool sdcard_retry(void)
     if (!sdcard_running) {
         if (sdcard_init()) {
             // create APM directory
-            AP::FS().mkdir("/APM");
+            //686879
+            AP::FS().mkdir("/MengChuang");
         }
     }
     return sdcard_running;

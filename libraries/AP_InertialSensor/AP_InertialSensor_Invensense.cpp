@@ -430,6 +430,7 @@ void AP_InertialSensor_Invensense::start()
 
     // start the timer process to read samples, using the fastest rate avilable
     _dev->register_periodic_callback(1000000UL / _gyro_backend_rate_hz, FUNCTOR_BIND_MEMBER(&AP_InertialSensor_Invensense::_poll_data, void));
+    hal.console->printf("start over\n");
 }
 
 // get a startup banner to output to the GCS
@@ -592,7 +593,7 @@ bool AP_InertialSensor_Invensense::_accumulate(uint8_t *samples, uint8_t n_sampl
                 return false;
             } else {
                 if (!hal.scheduler->in_expected_delay()) {
-                    debug("temp reset IMU[%u] %d %d", _accel_instance, _raw_temp, t2);
+                    //debug("temp reset IMU[%u] %d %d", _accel_instance, _raw_temp, t2);
                 }
                 _fifo_reset(true);
                 return false;
@@ -645,7 +646,7 @@ bool AP_InertialSensor_Invensense::_accumulate_sensor_rate_sampling(uint8_t *sam
 #endif
             {
                 if (!hal.scheduler->in_expected_delay()) {
-                    debug("temp reset IMU[%u] %d %d", _accel_instance, _raw_temp, t2);
+                    //debug("temp reset IMU[%u] %d %d", _accel_instance, _raw_temp, t2);
                 }
                 _fifo_reset(true);
                 ret = false;
@@ -770,7 +771,7 @@ void AP_InertialSensor_Invensense::_read_fifo()
             memset(rx, 0, n * MPU_SAMPLE_SIZE);
             if (!_dev->transfer(rx, n * MPU_SAMPLE_SIZE, rx, n * MPU_SAMPLE_SIZE)) {
                 if (!hal.scheduler->in_expected_delay()) {
-                    debug("MPU60x0: error in fifo read %u bytes\n", n * MPU_SAMPLE_SIZE);
+                    //debug("MPU60x0: error in fifo read %u bytes\n", n * MPU_SAMPLE_SIZE);
                 }
                 _dev->set_chip_select(false);
                 goto check_registers;
@@ -781,7 +782,7 @@ void AP_InertialSensor_Invensense::_read_fifo()
         if (_fast_sampling) {
             if (!_accumulate_sensor_rate_sampling(rx, n)) {
                 if (!hal.scheduler->in_expected_delay() && !_enable_fast_fifo_reset) {
-                    debug("IMU[%u] stop at %u of %u", _accel_instance, n_samples, bytes_read/MPU_SAMPLE_SIZE);
+                    //debug("IMU[%u] stop at %u of %u", _accel_instance, n_samples, bytes_read/MPU_SAMPLE_SIZE);
                 }
                 break;
             }
@@ -792,9 +793,8 @@ void AP_InertialSensor_Invensense::_read_fifo()
         }
         n_samples -= n;
     }
-
     if (need_reset) {
-        //debug("fifo reset n_samples %u", bytes_read/MPU_SAMPLE_SIZE);
+        debug("fifo reset n_samples %u", bytes_read/MPU_SAMPLE_SIZE);
         _fifo_reset(false);
     }
     
@@ -843,6 +843,7 @@ bool AP_InertialSensor_Invensense::_check_raw_temp(int16_t t2)
     if (_block_read(MPUREG_TEMP_OUT_H, trx, 2)) {
         _raw_temp = int16_val(trx, 0);
     }
+    //800
     return (abs(t2 - _raw_temp) < 800);
 }
 

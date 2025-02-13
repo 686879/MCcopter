@@ -1,0 +1,8 @@
+#!/usr/bin/env python
+# encoding: utf-8
+def build(bld):
+    bld.ap_program(
+        program_name='led_demo',#your code name
+        program_groups=['examples', 'led_demo'],
+        use= 'ap',
+        )

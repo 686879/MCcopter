@@ -198,8 +198,8 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
 #endif
     SCHED_TASK(standby_update,        100,    75,  96),
     SCHED_TASK(lost_vehicle_check,    10,     50,  99),
-    SCHED_TASK_CLASS(GCS,                  (GCS*)&copter._gcs,          update_receive, 400, 180, 102),
-    SCHED_TASK_CLASS(GCS,                  (GCS*)&copter._gcs,          update_send,    400, 550, 105),
+    SCHED_TASK_CLASS(GCS,                  (GCS*)&copter._gcs,          update_receive , 400, 180, 102),
+    SCHED_TASK_CLASS(GCS,                  (GCS*)&copter._gcs,          update_send , 400, 550, 105),
 #if HAL_MOUNT_ENABLED
     SCHED_TASK_CLASS(AP_Mount,             &copter.camera_mount,        update,          50,  75, 108),
 #endif
@@ -653,7 +653,7 @@ void Copter::init_simple_bearing()
 void Copter::update_simple_mode(void)
 {
     float rollx, pitchx;
-
+    //判断飞行器状态
     // exit immediately if no new radio frame or not in simple mode
     if (simple_mode == SimpleMode::NONE || !ap.new_radio_frame) {
         return;
@@ -661,7 +661,7 @@ void Copter::update_simple_mode(void)
 
     // mark radio frame as consumed
     ap.new_radio_frame = false;
-
+    //转换输入量坐标系
     if (simple_mode == SimpleMode::SIMPLE) {
         // rotate roll, pitch input by -initial simple heading (i.e. north facing)
         rollx = channel_roll->get_control_in()*simple_cos_yaw - channel_pitch->get_control_in()*simple_sin_yaw;

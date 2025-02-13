@@ -13,15 +13,15 @@ void loop();
 const AP_HAL::HAL& hal = AP_HAL::get_HAL();
 
 // create board led object
-AP_BoardLED board_led;
+AP_Notify notify;
 
 void setup()
 {
     hal.console->printf("AP_Notify library test\n");
 
-    // initialise the board leds
-    board_led.init();
 
+    // initialise the board leds
+    notify.init();
     // turn on initialising notification
     AP_Notify::flags.initialising = true;
     AP_Notify::flags.gps_status = 1;
@@ -31,7 +31,11 @@ void setup()
 
 void loop()
 {
+    hal.console->printf("123");
+    
+    notify.update();
     hal.scheduler->delay(1000);
+    
 }
 
 AP_HAL_MAIN();

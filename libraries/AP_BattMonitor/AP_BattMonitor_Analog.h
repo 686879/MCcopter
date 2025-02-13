@@ -110,8 +110,10 @@ public:
     virtual bool has_current() const override;
 
     virtual void init(void) override {}
+    bool capacity_remaining_pct(uint8_t &percentage) const override WARN_IF_UNUSED;
 
     static const struct AP_Param::GroupInfo var_info[];
+    
 
 protected:
 

@@ -213,7 +213,7 @@ void GPIO::pinMode(uint8_t pin, uint8_t output)
         }
 #endif
         palSetLineMode(g->pal_line, g->mode);
-        g->is_input = !output;
+        g->is_input = !output; //IS_INPUT 软件使用并非硬件寄存器，硬件寄存器由mode决定
     }
 }
 

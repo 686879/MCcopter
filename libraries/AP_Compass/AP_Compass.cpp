@@ -1002,7 +1002,7 @@ bool Compass::_add_backend(AP_Compass_Backend *backend)
     if (_backend_count == COMPASS_MAX_BACKEND) {
         return false;
     }
-
+    hal.console->printf("backend success");
     _backends[_backend_count++] = backend;
 
     return true;
@@ -1043,7 +1043,7 @@ bool Compass::_have_i2c_driver(uint8_t bus, uint8_t address) const
 
 /*
   macro to add a backend with check for too many backends or compass
-  instances. We don't try to start more than the maximum allowed
+  instances. We don't try to start more than the maximum allowed  686879
  */
 #define ADD_BACKEND(driver_type, backend)   \
     do { if (_driver_enabled(driver_type)) { _add_backend(backend); } \
@@ -1280,6 +1280,7 @@ void Compass::_detect_backends(void)
 
 #if defined(HAL_MAG_PROBE_LIST)
     // driver probes defined by COMPASS lines in hwdef.dat
+    hal.console->printf("start");
     HAL_MAG_PROBE_LIST;
 #elif AP_FEATURE_BOARD_DETECT
     switch (AP_BoardConfig::get_board_type()) {

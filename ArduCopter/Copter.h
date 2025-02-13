@@ -226,7 +226,12 @@ public:
     friend class ModeZigZag;
     friend class ModeAutorotate;
     friend class ModeTurtle;
-
+    //686879
+    friend class ModeClimb;
+    friend class ModeRecovery;
+    friend class ModeCar;
+    friend class ModeTop;
+    friend class ModeFire;
     Copter(void);
 
 private:
@@ -384,6 +389,7 @@ private:
     // There are multiple states defined such as STABILIZE, ACRO,
     Mode *flightmode;
     Mode::Number prev_control_mode;
+    Mode::Number desired_mode; //686879 use in rocovery
 
     RCMapper rcmap;
 
@@ -1016,6 +1022,21 @@ private:
 #if MODE_TURTLE_ENABLED == ENABLED
     ModeTurtle mode_turtle;
 #endif
+//686879
+#if MODE_CLIMB_ENABLED == ENABLED
+    ModeClimb mode_climb;
+#endif
+#if MODE_RECOVERY_ENABLED == ENABLED
+    ModeRecovery mode_recovery;
+#endif
+#if MODE_CAR_ENABLED == ENABLED
+    ModeCar mode_car;
+#endif
+#if MODE_TOP_ENABLED == ENABLED
+    ModeTop mode_top;
+#endif
+#if MODE_FIRE_ENABLED == ENABLED
+    ModeClimb mode_fire;
 
     // mode.cpp
     Mode *mode_from_mode_num(const Mode::Number mode);
@@ -1024,6 +1045,7 @@ private:
 public:
     void failsafe_check();      // failsafe.cpp
 };
+#endif
 
 extern Copter copter;
 

@@ -39,7 +39,6 @@ void Copter::init_ardupilot()
     // initialise notify system
     notify.init();
     notify_flight_mode();
-
     // initialise battery monitor
     battery.init();
 
@@ -77,6 +76,7 @@ void Copter::init_ardupilot()
     surface_tracking.init((SurfaceTracking::Surface)copter.g2.surftrak_mode.get());
 
     // allocate the motors class
+    hal.console->printf("allocate start");
     allocate_motors();
 
     // initialise rc channels including setting mode

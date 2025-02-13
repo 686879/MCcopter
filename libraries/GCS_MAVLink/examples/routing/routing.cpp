@@ -48,7 +48,7 @@ void loop(void)
     }
 
     // incoming non-targetted message
-    mavlink_attitude_t attitude = {0};
+    mavlink_attitude_t attitude = {};
     mavlink_msg_attitude_encode(3, 1, &msg, &attitude);
     if (!routing.check_and_forward(MAVLINK_COMM_0, msg)) {
         hal.console->printf("attitude should be processed locally\n");

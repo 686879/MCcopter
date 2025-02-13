@@ -176,6 +176,7 @@ static void run_test()
                                 state, (double)gyro.x, (double)gyro.y, (double)gyro.z);
             auto temp = ins.get_temperature(ii);
             hal.console->printf("   t:%6.2f\n", (double)temp);
+            
         }
     }
 

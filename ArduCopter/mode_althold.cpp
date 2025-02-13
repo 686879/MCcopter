@@ -9,12 +9,12 @@
 bool ModeAltHold::init(bool ignore_checks)
 {
 
-    // initialise the vertical position controller
+    // 初始化z轴控制器
     if (!pos_control->is_active_z()) {
         pos_control->init_z_controller();
     }
 
-    // set vertical speed and acceleration limits
+    // 设定飞行器z轴方向的最大值
     pos_control->set_max_speed_accel_z(-get_pilot_speed_dn(), g.pilot_speed_up, g.pilot_accel_z);
     pos_control->set_correction_speed_accel_z(-get_pilot_speed_dn(), g.pilot_speed_up, g.pilot_accel_z);
 
@@ -38,8 +38,9 @@ void ModeAltHold::run()
     // get pilot's desired yaw rate
     float target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->norm_input_dz());
 
-    // get pilot desired climb rate
+    // 计算期望爬升率
     float target_climb_rate = get_pilot_desired_climb_rate(channel_throttle->get_control_in());
+    //爬升率限幅
     target_climb_rate = constrain_float(target_climb_rate, -get_pilot_speed_dn(), g.pilot_speed_up);
 
     // Alt Hold State Machine Determination
@@ -79,7 +80,7 @@ void ModeAltHold::run()
     case AltHold_Flying:
         motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
 
-#if AC_AVOID_ENABLED == ENABLED
+#if AC_AVOID_ENABLED == ENABLED//避障处理
         // apply avoidance
         copter.avoid.adjust_roll_pitch(target_roll, target_pitch, copter.aparm.angle_max);
 #endif
@@ -91,11 +92,13 @@ void ModeAltHold::run()
         copter.surface_tracking.update_surface_offset();
 
         // Send the commanded climb rate to the position controller
+        //设置位置控制器z轴的爬升率
         pos_control->set_pos_target_z_from_climb_rate_cm(target_climb_rate);
         break;
     }
 
     // call attitude controller
+    
     attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(target_roll, target_pitch, target_yaw_rate);
 
     // run the vertical position controller and set output throttle

@@ -21,6 +21,10 @@
 #include "hwdef/common/ppm.h"
 #if CONFIG_HAL_BOARD == HAL_BOARD_CHIBIOS
 
+//686879
+#define HAL_NO_UARTDRIVER 1
+
+
 #if HAL_WITH_IO_MCU
 #include <AP_BoardConfig/AP_BoardConfig.h>
 #include <AP_IOMCU/AP_IOMCU.h>

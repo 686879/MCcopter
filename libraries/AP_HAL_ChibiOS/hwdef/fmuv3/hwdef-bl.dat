@@ -17,7 +17,7 @@ STM32_ST_USE_TIMER 5
 # flash size
 FLASH_SIZE_KB 2048
 
-# location of application code
+# bootloader空间
 FLASH_BOOTLOADER_LOAD_KB 16
 
 # bootloader loads at start of flash

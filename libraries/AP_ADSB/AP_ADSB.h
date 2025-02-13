@@ -302,7 +302,6 @@ private:
         SPECIAL_ONLY    = 1,
         ALL             = 2
     };
-
     // reference to backend
     AP_ADSB_Backend *_backend[ADSB_MAX_INSTANCES];
 };

@@ -128,7 +128,7 @@ HAL_UART_IO_DRIVER;
 AP_IOMCU iomcu(uart_io);
 #endif
 
-HAL_ChibiOS::HAL_ChibiOS() :
+HAL_ChibiOS::HAL_ChibiOS() ://调用父类构造函数
     AP_HAL::HAL(
         &uartADriver,
         &uartBDriver,
@@ -286,6 +286,7 @@ static void main_loop()
     chThdSetPriority(APM_MAIN_PRIORITY);
 
     while (true) {
+        //hal.console->printf("now loop");
         g_callbacks->loop();
 
         /*

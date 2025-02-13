@@ -27,7 +27,7 @@
 
 extern const AP_HAL::HAL& hal;
 
-/// map a function to a servo channel and output it
+/// map a function to a servo channel and output it 686879
 void SRV_Channel::output_ch(void)
 {
 #ifndef HAL_BUILD_AP_PERIPH

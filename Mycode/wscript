@@ -1,0 +1,6 @@
+def build(bld):
+    bld.ap_program(
+        program_name='mycode',#your code name
+        program_groups=['examples', 'mycode'],
+        use= 'ap',
+        )

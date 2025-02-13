@@ -222,7 +222,7 @@ void RGBLed::update()
     uint8_t green_des = (colour & GREEN) ? brightness : _led_off;
     uint8_t blue_des = (colour & BLUE) ? brightness : _led_off;
 
-    set_rgb(red_des, green_des, blue_des);
+    set_rgb(red_des,green_des,blue_des);
 }
 
 /*

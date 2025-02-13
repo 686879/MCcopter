@@ -447,6 +447,7 @@ static void test_flash()
 void
 bootloader(unsigned timeout)
 {
+    
 #if TEST_FLASH
     test_flash();
 #endif
@@ -599,12 +600,14 @@ bootloader(unsigned timeout)
         case PROTO_CHIP_ERASE:
 
             if (!done_sync || !CHECK_GET_DEVICE_FINISHED(done_get_device_flags)) {
+                uprintf("bad 1\n");
                 // lower chance of random data on a uart triggering erase
                 goto cmd_bad;
             }
 
             /* expect EOC */
             if (!wait_for_eoc(2)) {
+                uprintf("bad 2\n");
                 goto cmd_bad;
             }
 
@@ -622,6 +625,7 @@ bootloader(unsigned timeout)
             // erase all sectors
             for (uint8_t i = 0; flash_func_sector_size(i) != 0; i++) {
                 if (!flash_func_erase_sector(i)) {
+                    uprintf("fail 1\n");
                     goto cmd_fail;
                 }
             }
@@ -632,6 +636,8 @@ bootloader(unsigned timeout)
             // verify the erase
             for (address = 0; address < board_info.fw_size; address += 4) {
                 if (flash_func_read_word(address) != 0xffffffff) {
+
+                    uprintf("fail 2 address:%ld\n",address);
                     goto cmd_fail;
                 }
             }
