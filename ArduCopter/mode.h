@@ -45,6 +45,7 @@ public:
         CAR = 31,
         TOP = 32,
         FIRE = 33,
+        SWARM = 34,
         // Mode number 127 reserved for the "drone show mode" in the Skybrush
         // fork at https://github.com/skybrush-io/ardupilot
     };
@@ -925,6 +926,37 @@ private:
     float throttle_out;
 };
 
+#endif
+
+#if MODE_SWARM_ENABLED == ENABLED
+class ModeSwarm : public ModeGuided {
+public:
+
+    // inherit constructor
+    using ModeGuided::Mode;
+    Number mode_number() const override { return Number::SWARM; }
+
+    bool init(bool ignore_checks) override;
+    void exit() override;
+    void run() override;
+
+    bool requires_GPS() const override { return true; }
+    bool has_manual_throttle() const override { return false; }
+    bool allows_arming(AP_Arming::Method method) const override { return false; }
+    bool is_autopilot() const override { return true; }
+    
+protected:
+
+    const char *name() const override { return "SWARM"; }
+    const char *name4() const override { return "SWARM"; }
+
+    // for reporting to GCS
+    bool get_wp(Location &loc) const override;
+    uint32_t wp_distance() const override;
+    int32_t wp_bearing() const override;
+
+    uint32_t last_log_ms;   // system time of last time desired velocity was logging
+};
 #endif
 
 #if MODE_CAR_ENABLED == ENABLED

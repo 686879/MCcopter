@@ -232,6 +232,7 @@ public:
     friend class ModeCar;
     friend class ModeTop;
     friend class ModeFire;
+    friend class ModeSwarm;
     Copter(void);
 
 private:
@@ -1031,6 +1032,9 @@ private:
 #endif
 #if MODE_CAR_ENABLED == ENABLED
     ModeCar mode_car;
+#endif
+#if MODE_SWARM_ENABLED == ENABLED
+    ModeSwarm mode_swarm;
 #endif
 #if MODE_TOP_ENABLED == ENABLED
     ModeTop mode_top;

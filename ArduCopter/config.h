@@ -279,6 +279,12 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
+// SWARM 686879 - 用于集群飞行从机
+#ifndef MODE_SWARM_ENABLED
+# define MODE_SWARM_ENABLED ENABLED
+#endif
+
+//////////////////////////////////////////////////////////////////////////////
 // Follow - follow another vehicle or GCS
 #ifndef MODE_FOLLOW_ENABLED
 # define MODE_FOLLOW_ENABLED !HAL_MINIMIZE_FEATURES

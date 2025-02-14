@@ -180,6 +180,11 @@ Mode *Copter::mode_from_mode_num(const Mode::Number mode)
             ret = &mode_climb;
             break;
 #endif
+#if MODE_SWARM_ENABLED == ENABLED
+        case Mode::Number::SWARM:
+            ret = &mode_swarm;
+            break;
+#endif
 #if MODE_FIRE_ENABLED == ENABLED
         case Mode::Number::FIRE:
             ret = &mode_fire;
