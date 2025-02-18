@@ -180,6 +180,13 @@
 
 #include "mode.h"
 
+//SWARM相关定义----------------------------------------------------------//
+#define AP_SWARM_HEADER 0x01
+#define AP_SWARM_MSGID_SETUP 0x02
+#define AP_SWARM_MSGID_CONTENT 0x03
+#define AP_SWARM_MSG_LEN_MAX 254
+//----------------------------------------------------------------------//
+
 class Copter : public AP_Vehicle {
 public:
     friend class GCS_MAVLINK_Copter;
@@ -236,7 +243,23 @@ public:
     Copter(void);
 
 private:
-
+    //Swarm相关变量-----------------------------------------------------//
+    AP_HAL::UARTDriver *swarm_uart;
+    enum MessageState{
+        MessageState_WaitingForHeader = 0,
+        MessageState_WaitingForMsgId = 1,
+        MessageState_WaitingForLen = 2,
+        MessageState_WaitingForContents = 3
+    } message_state;
+    uint8_t swarm_msg_id;
+    uint8_t swarm_msg_len;
+    bool swarm_is_leader;
+    uint8_t swarmbuf[AP_SWARM_MSG_LEN_MAX];
+    uint8_t swarmbuf_len = 0;
+    uint32_t swarm_update_ms = 0;
+    Vector3f swarm_vel;
+    Vector3f swarm_pos;
+    //-----------------------------------------------------------------//
     // key aircraft parameters passed to multiple libraries
     AP_Vehicle::MultiCopter aparm;
 
@@ -279,7 +302,6 @@ private:
         // update_surface_offset - manages the vertical offset of the position controller to follow the
         //   measured ground or ceiling level measured using the range finder.
         void update_surface_offset();
-
         // get/set target altitude (in cm) above ground
         bool get_target_alt_cm(float &target_alt_cm) const;
         void set_target_alt_cm(float target_alt_cm);
@@ -647,7 +669,7 @@ private:
                   "_failsafe_priorities is missing the sentinel");
 
 
-
+                                                     
     // AP_State.cpp
     void set_auto_armed(bool b);
     void set_simple_mode(SimpleMode b);
@@ -656,6 +678,12 @@ private:
     void update_using_interlock();
 
     // Copter.cpp
+    //swarm相关函数 686879 ----------------------------------------------------//
+    void init_swarm();
+    bool is_leader = false;
+    void update_swarm_message();
+    void swarm_buffer();
+    //------------------------------------------------------------------------//
     void get_scheduler_tasks(const AP_Scheduler::Task *&tasks,
                              uint8_t &task_count,
                              uint32_t &log_bit) override;
