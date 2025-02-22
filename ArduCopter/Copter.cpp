@@ -630,6 +630,7 @@ void Copter::one_hz_loop()
 #endif
 
     AP_Notify::flags.flying = !ap.land_complete;
+    update_swarm_message();
 }
 
 void Copter::init_simple_bearing()
@@ -771,6 +772,7 @@ void Copter::init_swarm()
         return;
     }
     swarm_uart->begin(115200);
+    swarm_is_leader = false;
     message_state = MessageState_WaitingForHeader;
 }
 
@@ -785,7 +787,6 @@ void Copter::update_swarm_message()
         int16_t nbytes = swarm_uart->available();
         while (nbytes-- > 0)
         {
-            hal.console->printf("nbytes:%d",nbytes);
             char c = swarm_uart->read();
             switch (message_state) {
 
@@ -823,6 +824,7 @@ void Copter::update_swarm_message()
                 case MessageState_WaitingForContents:
                     // add to buffer
                     swarmbuf[swarmbuf_len++] = c;
+                    hal.console->printf("byte%hx\n",c);
                     if ((swarmbuf_len == swarm_msg_len) || (swarmbuf_len == sizeof(swarmbuf))) {
                         // process buffer
                         swarm_buffer();
@@ -834,6 +836,7 @@ void Copter::update_swarm_message()
         }
     }
     else{
+        hal.console->print("start_send");
         uint8_t send_buf[28];
         uint8_t crc = 0;
         send_buf[0] = AP_SWARM_HEADER;
@@ -886,40 +889,27 @@ void Copter::swarm_buffer()
 
         case AP_SWARM_MSGID_CONTENT:
             {
-                // AP_AHRS &ahrs = AP::ahrs();
-
-                // UNUSED_RESULT(ahrs.get_location(global_position_current_loc)); // return value ignored; we send stale data
-
-                // Vector3f vel;
-                // if (!ahrs.get_velocity_NED(vel)) {
-                //     vel.zero();
-                // }
-
-                // mavlink_msg_global_position_int_send(
-                //     chan,
-                //     AP_HAL::millis(),
-                //     global_position_current_loc.lat, // in 1E7 degrees
-                //     global_position_current_loc.lng, // in 1E7 degrees
-                //     global_position_int_alt(),       // millimeters above ground/sea level
-                //     global_position_int_relative_alt(), // millimeters above home
-                //     vel.x * 100,                     // X speed cm/s (+ve North)
-                //     vel.y * 100,                     // Y speed cm/s (+ve East)
-                //     vel.z * 100,                     // Z speed cm/s (+ve Down)
-                //     ahrs.yaw_sensor);                // compass heading in 1/100 degree
-
-                swarm_pos.x = (float)((uint32_t)swarmbuf[3] << 24 | (uint32_t)swarmbuf[2] << 16 | (uint32_t)swarmbuf[1] << 8 | (uint32_t)swarmbuf[0]);
-                swarm_pos.y = (float)((uint32_t)swarmbuf[7] << 24 | (uint32_t)swarmbuf[6] << 16 | (uint32_t)swarmbuf[5] << 8 | (uint32_t)swarmbuf[4]);
-                swarm_pos.z = (float)((uint32_t)swarmbuf[11] << 24 | (uint32_t)swarmbuf[10] << 16 | (uint32_t)swarmbuf[9] << 8 | (uint32_t)swarmbuf[8]);
-                swarm_vel.x = (float)((uint32_t)swarmbuf[15] << 24 | (uint32_t)swarmbuf[14] << 16 | (uint32_t)swarmbuf[13] << 8 | (uint32_t)swarmbuf[12]);
-                swarm_vel.y = (float)((uint32_t)swarmbuf[19] << 24 | (uint32_t)swarmbuf[18] << 16 | (uint32_t)swarmbuf[17] << 8 | (uint32_t)swarmbuf[16]);
-                swarm_vel.z = (float)((uint32_t)swarmbuf[23] << 24 | (uint32_t)swarmbuf[22] << 16 | (uint32_t)swarmbuf[21] << 8 | (uint32_t)swarmbuf[20]);
+                uint32_t out;
+                out = ((uint32_t)swarmbuf[0] << 24 | (uint32_t)swarmbuf[1] << 16 | (uint32_t)swarmbuf[2] << 8 | (uint32_t)swarmbuf[3]);
+                memcpy(&swarm_pos.x,&out,sizeof(float));
+                out = ((uint32_t)swarmbuf[4] << 24 | (uint32_t)swarmbuf[5] << 16 | (uint32_t)swarmbuf[6] << 8 | (uint32_t)swarmbuf[7]);
+                memcpy(&swarm_pos.y,&out,sizeof(float));
+                out = ((uint32_t)swarmbuf[8] << 24 | (uint32_t)swarmbuf[9] << 16 | (uint32_t)swarmbuf[10] << 8 | (uint32_t)swarmbuf[11]);
+                memcpy(&swarm_pos.z,&out,sizeof(float));
+                out = ((uint32_t)swarmbuf[12] << 24 | (uint32_t)swarmbuf[13] << 16 | (uint32_t)swarmbuf[14] << 8 | (uint32_t)swarmbuf[15]);
+                memcpy(&swarm_vel.x,&out,sizeof(float));
+                out = ((uint32_t)swarmbuf[16] << 24 | (uint32_t)swarmbuf[17] << 16 | (uint32_t)swarmbuf[18] << 8 | (uint32_t)swarmbuf[19]);
+                memcpy(&swarm_vel.y,&out,sizeof(float));
+                out = ((uint32_t)swarmbuf[20] << 24 | (uint32_t)swarmbuf[21] << 16 | (uint32_t)swarmbuf[22] << 8 | (uint32_t)swarmbuf[23]);
+                memcpy(&swarm_vel.z,&out,sizeof(float));
+                hal.console->printf("555%f",swarm_pos.x);
             }
             break;
         default:
             // unrecognised message id
             break;
     }
-
+    
     // record success
     if (parsed) {
         swarm_update_ms = AP_HAL::millis();

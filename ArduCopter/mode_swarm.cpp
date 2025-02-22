@@ -4,8 +4,8 @@
 
 bool ModeSwarm::init(const bool ignore_checks)
 {
-    if (!g2.follow.enabled()) {
-        gcs().send_text(MAV_SEVERITY_WARNING, "Set FOLL_ENABLE = 1");
+    if (copter.is_leader)
+    {
         return false;
     }
     // re-use guided mode
@@ -28,12 +28,6 @@ void ModeSwarm::run()
 
     // set motors to full range
     motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
-
-    // re-use guided mode's velocity controller
-    // Note: this is safe from interference from GCSs and companion computer's whose guided mode
-    //       position and velocity requests will be ignored while the vehicle is not in guided mode
-
-    // variables to be sent to velocity controller
     Vector3f desired_velocity_neu_cms;
     bool use_yaw = false;
     float yaw_cd = 0.0f;
