@@ -9,9 +9,11 @@ bool ModeSwarm::init(const bool ignore_checks)
         return false;
     }
     // re-use guided mode
+    position_offset.x = 5.0;
+    position_offset.y = 5.0;
+    position_offset.z = 0;
     return ModeGuided::init(ignore_checks);
 }
-
 // perform cleanup required when leaving follow mode
 void ModeSwarm::exit()
 {
@@ -35,12 +37,12 @@ void ModeSwarm::run()
     Vector3f dist_vec;  // vector to lead vehicle
     Vector3f dist_vec_offs;  // vector to lead vehicle + offset
     Vector3f vel_of_target;  // velocity of lead vehicle
-    if (g2.follow.get_target_dist_and_vel_ned(dist_vec, dist_vec_offs, vel_of_target)) {
+    if (get_ned_target_dist_and_vel(dist_vec, dist_vec_offs, vel_of_target)) {
         // convert dist_vec_offs to cm in NEU
         const Vector3f dist_vec_offs_neu(dist_vec_offs.x * 100.0f, dist_vec_offs.y * 100.0f, -dist_vec_offs.z * 100.0f);
 
         // calculate desired velocity vector in cm/s in NEU
-        const float kp = g2.follow.get_pos_p().kP();
+        const float kp = 0.1;
         desired_velocity_neu_cms.x = (vel_of_target.x * 100.0f) + (dist_vec_offs_neu.x * kp);
         desired_velocity_neu_cms.y = (vel_of_target.y * 100.0f) + (dist_vec_offs_neu.y * kp);
         desired_velocity_neu_cms.z = (-vel_of_target.z * 100.0f) + (dist_vec_offs_neu.z * kp);
@@ -88,51 +90,116 @@ void ModeSwarm::run()
         copter.avoid.adjust_velocity(desired_velocity_neu_cms, pos_control->get_pos_xy_p().kP().get(), pos_control->get_max_accel_xy_cmss(), pos_control->get_pos_z_p().kP().get(), pos_control->get_max_accel_z_cmss(), G_Dt);
 
         // calculate vehicle heading
-        switch (g2.follow.get_yaw_behave()) {
-            case AP_Follow::YAW_BEHAVE_FACE_LEAD_VEHICLE: {
-                if (dist_vec.xy().length_squared() > 1.0) {
-                    yaw_cd = get_bearing_cd(Vector2f{}, dist_vec.xy());
-                    use_yaw = true;
-                }
-                break;
-            }
+        // switch (g2.follow.get_yaw_behave()) {
+        //     case AP_Follow::YAW_BEHAVE_FACE_LEAD_VEHICLE: {
+        //         if (dist_vec.xy().length_squared() > 1.0) {
+        //             yaw_cd = get_bearing_cd(Vector2f{}, dist_vec.xy());
+        //             use_yaw = true;
+        //         }
+        //         break;
+        //     }
 
-            case AP_Follow::YAW_BEHAVE_SAME_AS_LEAD_VEHICLE: {
-                float target_hdg = 0.0f;
-                if (g2.follow.get_target_heading_deg(target_hdg)) {
-                    yaw_cd = target_hdg * 100.0f;
-                    use_yaw = true;
-                }
-                break;
-            }
+        //     case AP_Follow::YAW_BEHAVE_SAME_AS_LEAD_VEHICLE: {
+        //         float target_hdg = 0.0f;
+        //         if (g2.follow.get_target_heading_deg(target_hdg)) {
+        //             yaw_cd = target_hdg * 100.0f;
+        //             use_yaw = true;
+        //         }
+        //         break;
+        //     }
 
-            case AP_Follow::YAW_BEHAVE_DIR_OF_FLIGHT: {
-                if (desired_velocity_neu_cms.xy().length_squared() > (100.0 * 100.0)) {
-                    yaw_cd = get_bearing_cd(Vector2f{}, desired_velocity_neu_cms.xy());
-                    use_yaw = true;
-                }
-                break;
-            }
+        //     case AP_Follow::YAW_BEHAVE_DIR_OF_FLIGHT: {
+        //         if (desired_velocity_neu_cms.xy().length_squared() > (100.0 * 100.0)) {
+        //             yaw_cd = get_bearing_cd(Vector2f{}, desired_velocity_neu_cms.xy());
+        //             use_yaw = true;
+        //         }
+        //         break;
+        //     }
 
-            case AP_Follow::YAW_BEHAVE_NONE:
-            default:
-                // do nothing
-               break;
+        //     case AP_Follow::YAW_BEHAVE_NONE:
+        //     default:
+        //         // do nothing
+        //        break;
 
-        }
+        // }
     }
 
     // log output at 10hz
-    uint32_t now = AP_HAL::millis();
-    bool log_request = false;
-    if ((now - last_log_ms >= 100) || (last_log_ms == 0)) {
-        log_request = true;
-        last_log_ms = now;
-    }
+    // uint32_t now = AP_HAL::millis();
+    // bool log_request = false;
+    // if ((now - last_log_ms >= 100) || (last_log_ms == 0)) {
+    //     log_request = true;
+    //     last_log_ms = now;
+    // }
     // re-use guided mode's velocity controller (takes NEU)
-    ModeGuided::set_velocity(desired_velocity_neu_cms, use_yaw, yaw_cd, false, 0.0f, false, log_request);
+    ModeGuided::set_velocity(desired_velocity_neu_cms, use_yaw, yaw_cd, false, 0.0f, false, false);
 
     ModeGuided::run();
+}
+
+bool ModeSwarm::get_ned_target_dist_and_vel(Vector3f &dist_ned, Vector3f &dist_with_offs, Vector3f &vel_ned)
+{
+    Location current_loc;
+    if (!AP::ahrs().get_location(current_loc)) {
+         return false;
+    }
+
+    // get target location and velocity
+    Location target_loc;
+    Vector3f veh_vel;
+    if (!get_target_loc_and_vel(target_loc, veh_vel)) {
+        return false;
+    }
+
+    // change to altitude above home if relative altitude is being used
+    if (target_loc.relative_alt == 1) {
+        current_loc.alt -= AP::ahrs().get_home().alt;
+    }
+
+    // calculate difference
+    const Vector3f dist_vec = current_loc.get_distance_NED(target_loc)-position_offset;
+
+    // fail if too far
+    if (dist_vec.length() > 15) {
+        return false;
+    }
+
+    Vector3f offsets(0,0,0);
+
+    // calculate results
+    dist_ned = dist_vec;
+    dist_with_offs = dist_vec + offsets;
+    vel_ned = veh_vel;
+    return true;
+}
+
+bool ModeSwarm::get_target_loc_and_vel(Location &loc, Vector3f &vel_ned)
+{
+
+    // check for timeout
+    if ((copter.swarm_update_ms == 0) || (AP_HAL::millis() - copter.swarm_update_ms > 3000)) {
+        return false;
+    }
+
+    // calculate time since last actual position update
+    const float dt = (AP_HAL::millis() - copter.swarm_update_ms) * 0.001f;
+
+    // get velocity estimate
+    // if (!get_velocity_ned(vel_ned, dt)) {
+    //     return false;
+    // }
+    vel_ned = copter.swarm_vel;
+    // project the vehicle position
+    Location last_loc;
+    last_loc.lat = copter.swarm_pos.x;
+    last_loc.lng = copter.swarm_pos.y;
+    last_loc.set_alt_cm(copter.swarm_pos.z / 10, Location::AltFrame::ABSOLUTE);
+    last_loc.offset(vel_ned.x * dt, vel_ned.y * dt);
+    last_loc.alt -= vel_ned.z * 100.0f * dt; // convert m/s to cm/s, multiply by dt.  minus because NED
+
+    // return latest position estimate
+    loc = last_loc;
+    return true;
 }
 
 uint32_t ModeSwarm::wp_distance() const
