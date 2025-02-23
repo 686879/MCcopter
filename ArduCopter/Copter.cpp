@@ -902,7 +902,6 @@ void Copter::swarm_buffer()
                 memcpy(&swarm_vel.y,&out,sizeof(float));
                 out = ((uint32_t)swarmbuf[20] << 24 | (uint32_t)swarmbuf[21] << 16 | (uint32_t)swarmbuf[22] << 8 | (uint32_t)swarmbuf[23]);
                 memcpy(&swarm_vel.z,&out,sizeof(float));
-                hal.console->printf("555%f",swarm_pos.x);
             }
             break;
         default:
