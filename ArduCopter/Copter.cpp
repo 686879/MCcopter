@@ -836,18 +836,23 @@ void Copter::update_swarm_message()
         }
     }
     else{
+        if (!flightmode->in_guided_mode())
+        {
+            return;
+        }
+
         hal.console->print("start_send");
         uint8_t send_buf[28];
         uint8_t crc = 0;
-        send_buf[0] = AP_SWARM_HEADER;
-        send_buf[1] = AP_SWARM_MSGID_CONTENT;
-        crc ^= send_buf[1];
-        send_buf[2] = 25;
-        crc ^= send_buf[2];
         Location send_loc;
         Vector3f send_vel;
         if (ahrs.get_location(send_loc) && ahrs.get_velocity_NED(send_vel))
         {
+            send_buf[0] = AP_SWARM_HEADER;
+            send_buf[1] = AP_SWARM_MSGID_CONTENT;
+            crc ^= send_buf[1];
+            send_buf[2] = 25;
+            crc ^= send_buf[2];
             float data_F;
             data_F = send_loc.lat;
             memcpy(&send_buf[3], &data_F, sizeof(float));
@@ -860,13 +865,18 @@ void Copter::update_swarm_message()
             data_F = send_vel.y * 100;
             memcpy(&send_buf[19], &data_F, sizeof(float));
             data_F = send_vel.z * 100;
-            memcpy(&send_buf[23], &data_F, sizeof(float));
+
+            for (uint8_t i=0; i<24; i++) {
+                crc ^= send_buf[3+i];
+            }
+            send_buf[27] = crc;
+            swarm_uart->write(send_buf,sizeof(send_buf));for (uint8_t i=0; i<24; i++) {
+                crc ^= send_buf[3+i];
+            }
+            send_buf[27] = crc;
+            swarm_uart->write(send_buf,sizeof(send_buf));      
         }
-        for (uint8_t i=0; i<24; i++) {
-            crc ^= send_buf[3+i];
-        }
-        send_buf[27] = crc;
-        swarm_uart->write(send_buf,sizeof(send_buf));
+        
     }
 }
 
