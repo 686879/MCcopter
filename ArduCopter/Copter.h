@@ -258,7 +258,7 @@ private:
     uint8_t swarmbuf_len = 0;
     uint32_t swarm_update_ms = 0;
     Vector3f swarm_vel;
-    Vector3f swarm_pos;
+    Vector3l swarm_pos;
     //-----------------------------------------------------------------//
     // key aircraft parameters passed to multiple libraries
     AP_Vehicle::MultiCopter aparm;

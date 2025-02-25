@@ -146,6 +146,7 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
     SCHED_TASK(rc_loop,              250,    130,  3),
     SCHED_TASK(throttle_loop,         50,     75,  6),
     SCHED_TASK_CLASS(AP_GPS,               &copter.gps,                 update,          50, 200,   9),
+    SCHED_TASK(update_swarm_message,50,200,10),
 #if AP_OPTICALFLOW_ENABLED
     SCHED_TASK_CLASS(AP_OpticalFlow,          &copter.optflow,             update,         200, 160,  12),
 #endif
@@ -630,7 +631,6 @@ void Copter::one_hz_loop()
 #endif
 
     AP_Notify::flags.flying = !ap.land_complete;
-    update_swarm_message();
 }
 
 void Copter::init_simple_bearing()
@@ -772,7 +772,7 @@ void Copter::init_swarm()
         return;
     }
     swarm_uart->begin(115200);
-    swarm_is_leader = false;
+    swarm_is_leader = true;
     message_state = MessageState_WaitingForHeader;
 }
 
@@ -824,7 +824,6 @@ void Copter::update_swarm_message()
                 case MessageState_WaitingForContents:
                     // add to buffer
                     swarmbuf[swarmbuf_len++] = c;
-                    hal.console->printf("byte%hx\n",c);
                     if ((swarmbuf_len == swarm_msg_len) || (swarmbuf_len == sizeof(swarmbuf))) {
                         // process buffer
                         swarm_buffer();
@@ -836,11 +835,6 @@ void Copter::update_swarm_message()
         }
     }
     else{
-        if (!flightmode->in_guided_mode())
-        {
-            return;
-        }
-
         hal.console->print("start_send");
         uint8_t send_buf[28];
         uint8_t crc = 0;
@@ -854,27 +848,31 @@ void Copter::update_swarm_message()
             send_buf[2] = 25;
             crc ^= send_buf[2];
             float data_F;
-            data_F = send_loc.lat;
-            memcpy(&send_buf[3], &data_F, sizeof(float));
-            data_F = send_loc.lng;
-            memcpy(&send_buf[7], &data_F, sizeof(float));
-            data_F = send_loc.alt * 10UL;
-            memcpy(&send_buf[11], &data_F, sizeof(float));
+            int32_t data_I;
+            data_I = send_loc.lat;
+            // hal.console->printf("lat:%ld\n",data_I);
+            memcpy(&send_buf[3], &data_I, sizeof(float));
+            data_I = send_loc.lng;
+            // hal.console->printf("lng:%ld\n",data_I);
+            memcpy(&send_buf[7], &data_I, sizeof(float));
+            data_I = send_loc.alt * 10UL;
+            // hal.console->printf("alt:%ld\n",data_I);
+            memcpy(&send_buf[11], &data_I, sizeof(float));
             data_F = send_vel.x * 100;
+            // hal.console->printf("vx:%f\n",data_F);
             memcpy(&send_buf[15], &data_F, sizeof(float));
             data_F = send_vel.y * 100;
+            // hal.console->printf("vy:%f\n",data_F);
             memcpy(&send_buf[19], &data_F, sizeof(float));
             data_F = send_vel.z * 100;
+            // hal.console->printf("vz:%f\n",data_F);
+            memcpy(&send_buf[23], &data_F, sizeof(float));
 
             for (uint8_t i=0; i<24; i++) {
                 crc ^= send_buf[3+i];
             }
             send_buf[27] = crc;
-            swarm_uart->write(send_buf,sizeof(send_buf));for (uint8_t i=0; i<24; i++) {
-                crc ^= send_buf[3+i];
-            }
-            send_buf[27] = crc;
-            swarm_uart->write(send_buf,sizeof(send_buf));      
+            swarm_uart->write(send_buf,sizeof(send_buf));  
         }
         
     }
@@ -900,18 +898,24 @@ void Copter::swarm_buffer()
         case AP_SWARM_MSGID_CONTENT:
             {
                 uint32_t out;
-                out = ((uint32_t)swarmbuf[0] << 24 | (uint32_t)swarmbuf[1] << 16 | (uint32_t)swarmbuf[2] << 8 | (uint32_t)swarmbuf[3]);
-                memcpy(&swarm_pos.x,&out,sizeof(float));
-                out = ((uint32_t)swarmbuf[4] << 24 | (uint32_t)swarmbuf[5] << 16 | (uint32_t)swarmbuf[6] << 8 | (uint32_t)swarmbuf[7]);
-                memcpy(&swarm_pos.y,&out,sizeof(float));
-                out = ((uint32_t)swarmbuf[8] << 24 | (uint32_t)swarmbuf[9] << 16 | (uint32_t)swarmbuf[10] << 8 | (uint32_t)swarmbuf[11]);
-                memcpy(&swarm_pos.z,&out,sizeof(float));
-                out = ((uint32_t)swarmbuf[12] << 24 | (uint32_t)swarmbuf[13] << 16 | (uint32_t)swarmbuf[14] << 8 | (uint32_t)swarmbuf[15]);
+                out = ((uint32_t)swarmbuf[3] << 24 | (uint32_t)swarmbuf[2] << 16 | (uint32_t)swarmbuf[1] << 8 | (uint32_t)swarmbuf[0]);
+                memcpy(&swarm_pos.x,&out,sizeof(int32_t));
+                // hal.console->printf("lat:%ld\n",swarm_pos.x);
+                out = ((uint32_t)swarmbuf[7] << 24 | (uint32_t)swarmbuf[6] << 16 | (uint32_t)swarmbuf[5] << 8 | (uint32_t)swarmbuf[4]);
+                memcpy(&swarm_pos.y,&out,sizeof(int32_t));
+                // hal.console->printf("lng:%ld\n",swarm_pos.y);
+                out = ((uint32_t)swarmbuf[11] << 24 | (uint32_t)swarmbuf[10] << 16 | (uint32_t)swarmbuf[9] << 8 | (uint32_t)swarmbuf[8]);
+                memcpy(&swarm_pos.z,&out,sizeof(int32_t));
+                // hal.console->printf("alt:%ld\n",swarm_pos.z);
+                out = ((uint32_t)swarmbuf[15] << 24 | (uint32_t)swarmbuf[14] << 16 | (uint32_t)swarmbuf[13] << 8 | (uint32_t)swarmbuf[12]);
                 memcpy(&swarm_vel.x,&out,sizeof(float));
-                out = ((uint32_t)swarmbuf[16] << 24 | (uint32_t)swarmbuf[17] << 16 | (uint32_t)swarmbuf[18] << 8 | (uint32_t)swarmbuf[19]);
+                // hal.console->printf("vx:%f\n",swarm_vel.x);
+                out = ((uint32_t)swarmbuf[19] << 24 | (uint32_t)swarmbuf[18] << 16 | (uint32_t)swarmbuf[17] << 8 | (uint32_t)swarmbuf[16]);
                 memcpy(&swarm_vel.y,&out,sizeof(float));
-                out = ((uint32_t)swarmbuf[20] << 24 | (uint32_t)swarmbuf[21] << 16 | (uint32_t)swarmbuf[22] << 8 | (uint32_t)swarmbuf[23]);
+                // hal.console->printf("vy:%f\n",swarm_vel.y);
+                out = ((uint32_t)swarmbuf[23] << 24 | (uint32_t)swarmbuf[22] << 16 | (uint32_t)swarmbuf[21] << 8 | (uint32_t)swarmbuf[20]);
                 memcpy(&swarm_vel.z,&out,sizeof(float));
+                // hal.console->printf("vz:%f\n",swarm_vel.z);
                 parsed = true;
             }
             break;
