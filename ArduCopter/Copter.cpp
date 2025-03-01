@@ -771,7 +771,7 @@ void Copter::init_swarm()
     {
         return;
     }
-    swarm_uart->begin(115200);
+    swarm_uart->begin(57600);
     swarm_is_leader = true;
     message_state = MessageState_WaitingForHeader;
 }

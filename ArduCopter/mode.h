@@ -1261,6 +1261,7 @@ protected:
 
     // for reporting to GCS
     Vector3f position_offset;
+    float wp_dist_swarm;
     bool get_wp(Location &loc) const override;
     bool get_ned_target_dist_and_vel(Vector3f &dist_ned, Vector3f &dist_with_offs, Vector3f &vel_ned);
     bool get_target_loc_and_vel(Location &loc, Vector3f &vel_ned);
