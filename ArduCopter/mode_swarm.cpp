@@ -22,6 +22,9 @@ void ModeSwarm::exit()
 
 void ModeSwarm::run()
 {
+    if (is_disarmed_or_landed()) {
+        return;
+    }
     // set motors to full range
     motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
     Vector3f desired_velocity_neu_cms;
